@@ -9,21 +9,21 @@ export class ConvertService {
   constructor(private readonly configService: ConfigService) {}
   private videoPath = this.configService.get<string>('videoPath');
 
-  convert(sourceVideoPath: string): string {
-    const { pid } = process;
+  convert(sourceVideoPath: string, host: string): string {
     const { pathname } = url.parse(sourceVideoPath);
     const paths = pathname.split('/')
     const nameFile = paths[paths.length - 1];
     const name = nameFile.split('.')[0];
     console.log(name);
+    if (!fs.existsSync('./video')){
+      fs.mkdirSync('./video');
+    }
     const dir = `./video/${name}`;
-    console.log({ pid });
     if (!fs.existsSync(dir)){
         fs.mkdirSync(dir);
     }
     const convertVideoPath = `${dir}/${name}.m3u8`;
     console.log(sourceVideoPath);
-    //sourceVideoPath = 'https://fv9-2.failiem.lv/down.php?i=2p87fpfu&download_checksum=225839eda93e8f6559ba837c5744ce7166acc70c&download_timestamp=1591906986';
     const child = spawn('ffmpeg',[
     '-re', 
     '-stream_loop', '-1',
@@ -48,7 +48,7 @@ export class ConvertService {
     );
     console.log(child.pid);
     
-/*      child.stdout.on('data', (data) => {
+   /*child.stdout.on('data', (data) => {
       console.log(`stdout: ${data}`);
     });
     
@@ -61,8 +61,7 @@ export class ConvertService {
     });
     child.unref();
     const response = {
-      url: convertVideoPath,
-      pid: pid,
+      url: `http://${host}/data/${name}.m3u8`,
       childPid: child.pid
     }
     return JSON.stringify(response);
@@ -75,6 +74,15 @@ export class ConvertService {
         console.error(err);
         return;
       }
+      console.log({ stdout });
+      console.log({ stderr });
+    });
+    exec(`rm -r -f ./video/syncTest`, (err, stdout, stderr) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      console.log('Delete folder');
       console.log({ stdout });
       console.log({ stderr });
     });

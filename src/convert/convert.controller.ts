@@ -7,8 +7,8 @@ export class ConvertController {
   constructor(private convertService: ConvertService) {}
   @Post()
   convert(@Req() request: Request): string {
-    console.log(request.body);
-    const response = this.convertService.convert(request.body.url);
+    const host = request.headers.host
+    const response = this.convertService.convert(request.body.url, host);
     return response;
   }
   @Get(':pid')
