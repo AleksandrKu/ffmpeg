@@ -18,7 +18,8 @@ export class ConvertService {
     if (!fs.existsSync('./video')){
       fs.mkdirSync('./video');
     }
-    const dir = `./video/${name}`;
+    //const dir = `./video/${name}`;
+    const dir = `./video/syncTest`;
     if (!fs.existsSync(dir)){
         fs.mkdirSync(dir);
     }
@@ -37,6 +38,7 @@ export class ConvertService {
     '-g', '24',
     '-r', '24',
     '-f', 'hls',
+    '-preset:v', 'superfast',
     //'-hls_list_size', '2',
     //'-hls_time', '1',
     convertVideoPath
