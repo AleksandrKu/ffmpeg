@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { spawn, exec } from 'child_process';
 import  * as url from 'url';
 import * as fs from 'fs';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class ConvertService {
@@ -10,6 +11,7 @@ export class ConvertService {
   private videoPath = this.configService.get<string>('videoPath');
 
   convert(sourceVideoPath: string, host: string): string {
+    const folder = uuidv4();
     const { pathname } = url.parse(sourceVideoPath);
     const paths = pathname.split('/')
     const nameFile = paths[paths.length - 1];
@@ -18,12 +20,12 @@ export class ConvertService {
     if (!fs.existsSync('./video')){
       fs.mkdirSync('./video');
     }
-    //const dir = `./video/${name}`;
-    const dir = `./video/syncTest`;
+    const dir = `./video/${folder}`;
     if (!fs.existsSync(dir)){
         fs.mkdirSync(dir);
     }
-    const convertVideoPath = `${dir}/${name}.m3u8`;
+    const fileName = `${name}.m3u8`;
+    const convertVideoPath = `${dir}/${fileName}`;
     console.log(sourceVideoPath);
     const child = spawn('ffmpeg',[
     '-re', 
@@ -49,7 +51,19 @@ export class ConvertService {
     }
     );
     console.log(child.pid);
-    
+    const childPid = child.pid;
+    const pathPidCollection = './database/pid-collection.json';
+    if (!fs.existsSync('./database/')) fs.mkdirSync('./database/');
+    let pidCollection = {};
+    if (fs.existsSync(pathPidCollection)) {
+      const pidCollectionBuffer = fs.readFileSync(pathPidCollection, 'utf8');
+      pidCollection = JSON.parse(pidCollectionBuffer);
+    }
+    pidCollection[`${childPid}`] = { fileName: name.replace(/[^a-z]/g, ''), folder };
+    console.log(pidCollection); 
+    const data = JSON.stringify(pidCollection);
+    fs.writeFileSync(pathPidCollection, data);
+
    /*child.stdout.on('data', (data) => {
       console.log(`stdout: ${data}`);
     });
@@ -70,6 +84,23 @@ export class ConvertService {
   }
 
   stopConvert(pid: string): string {
+
+    const pathPidCollection = './database/pid-collection.json';
+    if (!fs.existsSync('./database/')) fs.mkdirSync('./database/');
+    let pidCollection = {};
+    if (fs.existsSync(pathPidCollection)) {
+      const pidCollectionBuffer = fs.readFileSync(pathPidCollection, 'utf8');
+      pidCollection = JSON.parse(pidCollectionBuffer);
+    }
+    const deletedProcess = pidCollection[`${pid}`];
+    const deletedFolder = deletedProcess.folder;
+    delete pidCollection[`${pid}`];
+    
+    console.log({ deletedFolder });
+    console.log({ pidCollection }); 
+    const data = JSON.stringify(pidCollection);
+    fs.writeFileSync(pathPidCollection, data);
+
     console.log(pid);
     exec(`kill -9 ${pid}`, (err, stdout, stderr) => {
       if (err) {
@@ -79,7 +110,7 @@ export class ConvertService {
       console.log({ stdout });
       console.log({ stderr });
     });
-    exec(`rm -r -f ./video/syncTest`, (err, stdout, stderr) => {
+    exec(`rm -r -f ./video/${deletedFolder}`, (err, stdout, stderr) => {
       if (err) {
         console.error(err);
         return;
