@@ -41,6 +41,8 @@ export class ConvertService {
     '-r', '24',
     '-f', 'hls',
     '-preset:v', 'superfast',
+    '-s', '640:-2',
+    '-ac', '2',
     //'-hls_list_size', '2',
     //'-hls_time', '1',
     convertVideoPath
@@ -110,6 +112,7 @@ export class ConvertService {
       console.log({ stdout });
       console.log({ stderr });
     });
+    if (fs.existsSync(`./video/${deletedFolder}`)) {
     exec(`rm -r -f ./video/${deletedFolder}`, (err, stdout, stderr) => {
       if (err) {
         console.error(err);
@@ -119,6 +122,7 @@ export class ConvertService {
       console.log({ stdout });
       console.log({ stderr });
     });
+    }
     return 'ok'
   }
 }
