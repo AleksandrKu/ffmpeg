@@ -41,7 +41,7 @@ export class ConvertService {
     '-r', '24',
     '-f', 'hls',
     '-preset:v', 'superfast',
-    '-s', '640:-2',
+    '-s', '640x-2',
     '-ac', '2',
     //'-hls_list_size', '2',
     //'-hls_time', '1',
@@ -76,6 +76,7 @@ export class ConvertService {
     
     child.on('close', (code) => {
       console.log(`child process exited with code ${code}`);
+      return  `ffmpeg exited with code ${code}`;
     });
     child.unref();
     const response = {
