@@ -4,6 +4,7 @@ import { spawn, exec } from 'child_process';
 import  * as url from 'url';
 import * as fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import { setTimeout } from 'timers';
 
 @Injectable()
 export class ConvertService {
@@ -41,7 +42,7 @@ export class ConvertService {
     '-r', '24',
     '-f', 'hls',
     '-preset:v', 'superfast',
-    '-s', '640x-2',
+    '-vf', 'scale=640:-2',
     '-ac', '2',
     //'-hls_list_size', '2',
     //'-hls_time', '1',
